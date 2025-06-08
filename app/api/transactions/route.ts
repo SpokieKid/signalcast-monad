@@ -17,7 +17,7 @@ const GOLDRUSH_API_KEY = process.env.GOLDRUSH_API_KEY;
 const GOLDRUSH_API_BASE_URL = "https://api.covalenthq.com/v1";
 
 // 解析从 GoldRush API 获取的原始交易数据
-function parseTransaction(tx: any, user: any): SimplifiedTransaction | null {
+function parseTransaction(tx: any, user: any, chainName: string): SimplifiedTransaction | null {
   const fromAddress = tx.from_address.toLowerCase();
   let sent = null;
   let received = null;
@@ -66,7 +66,7 @@ function parseTransaction(tx: any, user: any): SimplifiedTransaction | null {
   if ((action === 'Swap' || action === 'Transfer') && (tx.value_quote > 1 || tx.gas_quote > 0.1)) {
      return {
       tx_hash: tx.tx_hash,
-      chain: tx.chain_name,
+      chain: chainName,
       timestamp: new Date(tx.block_signed_at).getTime(),
       user: user,
       action: action,
@@ -103,7 +103,7 @@ async function fetchTransactionsForChain(address: string, chainName: string, use
     }
 
     const parsedTxs = data.data.items
-      .map((tx: any) => parseTransaction(tx, user))
+      .map((tx: any) => parseTransaction(tx, user, chainName))
       .filter((tx: SimplifiedTransaction | null): tx is SimplifiedTransaction => tx !== null);
       
     return parsedTxs;

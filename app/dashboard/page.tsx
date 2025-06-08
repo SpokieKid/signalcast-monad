@@ -89,9 +89,12 @@ export default function Dashboard() {
       eventSource.addEventListener('transaction', (event) => {
         try {
           const newTrades = JSON.parse(event.data);
+
           setTimelineTrades(prevTrades => {
-            const updatedTrades = [...prevTrades, ...newTrades];
-            // Keep the list sorted by timestamp as new data arrives
+            const allTrades = [...prevTrades, ...newTrades];
+            const uniqueTradesMap = new Map(allTrades.map(t => [t.tx_hash, t]));
+            const updatedTrades = Array.from(uniqueTradesMap.values());
+
             updatedTrades.sort((a, b) => b.timestamp - a.timestamp);
             return updatedTrades;
           });
