@@ -5,7 +5,7 @@ SignalCast
 - **成员2:Twone** 邮箱: twonehk2016@gmail.com
 ### 项目描述
 SignalCast is a Farcaster-native mini app that lets your AI pet track your frens’ trades — across Monad and other chains.
-Get real-time intel when the wallets you follow buy, sell, or degen into something spicy. Set alerts, get pinged, and (soon™) copy trades with one click.
+Get real-time intel when the wallets you follow buy, sell, or degen into something spicy. Set alerts, get pinged, and copy trades with one click.
 
 No alpha groups. No fake gurus. Just onchain signals from the people you trust.
 
