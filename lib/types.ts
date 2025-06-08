@@ -14,11 +14,13 @@ export interface SimplifiedTransaction {
     token: string;
     amount: string;
     logo?: string;
+    contract_address?: string;
   };
   received?: {
     token: string;
     amount: string;
     logo?: string;
+    contract_address?: string;
   };
   usd_value?: number;
 }

@@ -178,13 +178,32 @@ export default function Dashboard() {
 
   }, [currentProfile?.fid, isAuthenticated, isMiniApp]);
 
-  const handleTradeClick = (tradeId: number) => {
-    window.open('https://app.uniswap.org/', '_blank')
+  const handleTradeClick = (trade: SimplifiedTransaction) => {
+    if (trade.action === 'Swap' && trade.sent && trade.received) {
+      // If the token is WETH, use 'ETH' for the URL to represent the native asset.
+      const inputCurrency = trade.sent.token === 'WETH' ? 'ETH' : trade.sent.contract_address;
+      const outputCurrency = trade.received.token === 'WETH' ? 'ETH' : trade.received.contract_address;
+
+      if (!inputCurrency || !outputCurrency) {
+        console.error("Could not construct Uniswap URL due to missing currency address.", trade);
+        return;
+      }
+      
+      // Remove commas from the formatted amount string for the URL parameter.
+      const exactAmount = trade.sent.amount.replace(/,/g, '');
+      const url = `https://app.uniswap.org/#/swap?inputCurrency=${inputCurrency}&outputCurrency=${outputCurrency}&exactField=input&exactAmount=${exactAmount}`;
+      
+      window.open(url, '_blank');
+    }
   }
 
   const handleViewTransaction = (tradeId: number) => {
     window.open('https://etherscan.io/', '_blank')
   }
+
+  const jsonRpcUrlMap = {
+    1: [`https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`],
+  };
 
   if (!isAuthenticated && !isMiniApp) {
     // ... (login button JSX) ...
@@ -262,12 +281,14 @@ export default function Dashboard() {
                       <span className="font-medium text-gray-800">@{trade.user.username}</span>
                       <span className="text-xs text-gray-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>
                     </div>
-                    <button
-                      onClick={() => window.open(`https://etherscan.io/tx/${trade.tx_hash}`, '_blank')}
-                      className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-medium trade-button"
-                    >
-                      Trade
-                    </button>
+                    {trade.action === 'Swap' && (
+                      <button
+                        onClick={() => handleTradeClick(trade)}
+                        className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-medium trade-button"
+                      >
+                        Trade
+                      </button>
+                    )}
                   </div>
 
                   {/* 交易信息 */}

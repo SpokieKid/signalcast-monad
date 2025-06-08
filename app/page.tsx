@@ -32,7 +32,12 @@ export default function Home() {
       // --- 原有的 Web 登录逻辑 ---
       if (isAuthenticated) {
         setIsLoading(false)
-        router.push('/setup')
+        const hasCompletedSetup = localStorage.getItem('hasCompletedSetup')
+        if (hasCompletedSetup) {
+          router.push('/dashboard')
+        } else {
+          router.push('/setup')
+        }
       } else {
         setIsLoading(false)
         signIn()

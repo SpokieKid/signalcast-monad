@@ -1,120 +1,87 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const petData = {
-  doge: {
-    name: 'Doge',
-    image: '/images/pets/doge.png',
-    color: 'from-yellow-400 to-orange-500',
-    message: '嗨！我是Doge。我会在你关注的人进行超过设定金额的交易时通知你。请设置你的提醒阈值。'
-  },
-  cat: {
-    name: 'Cat',
-    image: '/images/pets/cat.png',
-    color: 'from-pink-400 to-purple-500',
-    message: '你好！我是Cat。我会密切关注大额交易，当交易金额超过你的设定时会立即提醒你！'
-  },
-  fox: {
-    name: 'Fox',
-    image: '/images/pets/fox.png',
-    color: 'from-orange-400 to-red-500',
-    message: '嗨！我是Fox。我会为你平衡监控各种交易，当发现重要的大额交易时会及时通知你。'
-  }
+  doge: { name: 'Doge', image: '/images/pets/doge.png', color: 'from-yellow-400 to-orange-500' },
+  cat: { name: 'Cat', image: '/images/pets/cat.png', color: 'from-pink-400 to-purple-500' },
+  forg: { name: 'Forg', image: '/images/pets/forg.png', color: 'from-green-400 to-teal-500' }
 }
 
+const petKeys = Object.keys(petData)
+
 export default function SetupPage() {
-  const [selectedPet, setSelectedPet] = useState<string>('doge')
-  const [alertAmount, setAlertAmount] = useState<string>('')
+  const [currentIndex, setCurrentIndex] = useState(0)
   const router = useRouter()
 
-  useEffect(() => {
-    const pet = localStorage.getItem('selectedPet')
-    if (pet && petData[pet as keyof typeof petData]) {
-      setSelectedPet(pet)
-    }
-  }, [])
-
-  const currentPet = petData[selectedPet as keyof typeof petData]
-
-  const handleNext = () => {
-    if (alertAmount && parseFloat(alertAmount) > 0) {
-      localStorage.setItem('alertAmount', alertAmount)
-      router.push('/dashboard')
-    }
+  const handleChoosePet = () => {
+    const selectedPetKey = petKeys[currentIndex]
+    router.push(`/setup/alert?pet=${selectedPetKey}`)
   }
 
+  const handleSwipe = (direction: 'left' | 'right') => {
+    if (direction === 'right') {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % petKeys.length)
+    } else {
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + petKeys.length) % petKeys.length)
+    }
+  }
+  
+  const currentPetKey = petKeys[currentIndex]
+  const currentPet = petData[currentPetKey as keyof typeof petData]
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* 返回按钮 */}
-        <button
-          onClick={() => router.back()}
-          className="mb-6 flex items-center text-gray-600 hover:text-gray-800"
-        >
-          ← 返回
-        </button>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100 overflow-hidden">
+      <div className="w-full max-w-sm text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Choose your Pet</h1>
+        <p className="text-gray-600 mt-2">Swipe left or right to meet your new companion.</p>
+      </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* 宠物头像 */}
-          <div className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br ${currentPet.color} flex items-center justify-center shadow-lg p-2`}>
-            <img 
-              src={currentPet.image} 
-              alt={currentPet.name}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                const parent = e.currentTarget.parentElement;
-                if (parent) {
-                  parent.innerHTML = '<span class="text-4xl">🎮</span>';
-                }
-              }}
-            />
-          </div>
-
-          {/* 宠物对话 */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-6 relative">
-            <div className="absolute -top-2 left-6 w-4 h-4 bg-gray-50 transform rotate-45"></div>
-            <p className="text-gray-700 leading-relaxed">{currentPet.message}</p>
-          </div>
-
-          {/* 金额输入 */}
-          <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">
-              设置提醒金额阈值 (USD)
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg">$</span>
-              <input
-                type="number"
-                value={alertAmount}
-                onChange={(e) => setAlertAmount(e.target.value)}
-                placeholder="100"
-                className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
-                min="0"
-                step="0.01"
-              />
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              当交易金额超过此数值时，该交易将以红色背景高亮显示
-            </p>
-          </div>
-
-          {/* 下一步按钮 */}
-          <button
-            onClick={handleNext}
-            disabled={!alertAmount || parseFloat(alertAmount) <= 0}
-            className={`w-full py-3 px-6 rounded-full font-semibold text-lg transition-all ${
-              alertAmount && parseFloat(alertAmount) > 0
-                ? 'trade-button text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+      <div className="relative w-full h-80 flex items-center justify-center">
+        <AnimatePresence>
+          <motion.div
+            key={currentIndex}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.7}
+            onDragEnd={(e, { offset, velocity }) => {
+              if (offset.x > 100) handleSwipe('left')
+              else if (offset.x < -100) handleSwipe('right')
+            }}
+            initial={{ scale: 0.8, opacity: 0, x: 300 }}
+            animate={{ scale: 1, opacity: 1, x: 0 }}
+            exit={{ scale: 0.8, opacity: 0, x: -300 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="absolute w-72 h-80"
           >
-            完成设置
-          </button>
-        </div>
+            <div className={`w-full h-full rounded-2xl bg-gradient-to-br ${currentPet.color} flex flex-col items-center justify-center p-6 shadow-2xl`}>
+              <img 
+                src={currentPet.image} 
+                alt={currentPet.name}
+                className="w-48 h-48 object-contain mb-4"
+              />
+              <h2 className="text-3xl font-bold text-white">{currentPet.name}</h2>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      
+      <div className="flex items-center justify-between w-64 mt-8">
+        <button onClick={() => handleSwipe('left')} className="p-4 rounded-full bg-white shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <button 
+          onClick={handleChoosePet}
+          className="px-8 py-4 rounded-full bg-purple-600 text-white font-bold text-lg shadow-lg hover:bg-purple-700 transition-all"
+        >
+          Choose
+        </button>
+        <button onClick={() => handleSwipe('right')} className="p-4 rounded-full bg-white shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
       </div>
     </div>
   )
-} 
+}

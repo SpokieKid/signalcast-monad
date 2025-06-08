@@ -38,7 +38,8 @@ function parseTransaction(tx: any, user: any, chainName: string): SimplifiedTran
         const tokenDetails = {
           token: event.sender_contract_ticker_symbol || 'Unknown',
           amount: parseFloat(tokenAmount).toLocaleString('en-US', { maximumFractionDigits: 4 }),
-          logo: event.sender_logo_url
+          logo: event.sender_logo_url,
+          contract_address: event.sender_address
         };
 
         if (transferFrom === fromAddress && !sent) {

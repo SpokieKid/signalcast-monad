@@ -1,27 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    domains: ['avatars.githubusercontent.com', 'res.cloudinary.com'],
-  },
-  async headers() {
+  async rewrites() {
     return [
       {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL',
-          },
-        ],
+        source: '/manifest.json',
+        destination: '/miniapp.json',
       },
+      {
+        source: '/.well-known/frame',
+        destination: '/api/frame'
+      },
+      // {
+      //   source: '/.well-known/fc-validation',
+      //   destination: '/api/fc-validation'
+      // }
     ];
   },
 }
