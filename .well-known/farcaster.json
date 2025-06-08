@@ -1,0 +1,37 @@
+{
+  "frame": {
+    "version": "1",
+    "name": "SignalCast",
+    "iconUrl": "https://signalcast.vercel.app/images/pets/doge.png",
+    "homeUrl": "https://signalcast.vercel.app",
+    "splashImageUrl": "https://signalcast.vercel.app/images/pets/doge.png",
+    "splashBackgroundColor": "#6366f1",
+    "subtitle": "AI pets copy trading on Monad",
+    "description": "Select AI pets to track Farcaster followers' investment activities and perform copy trading on Monad blockchain. Choose from conservative Doge, aggressive Cat, or balanced Fox strategies.",
+    "screenshotUrls": [
+      "https://signalcast.vercel.app/screenshot1.png",
+      "https://signalcast.vercel.app/screenshot2.png",
+      "https://signalcast.vercel.app/screenshot3.png"
+    ],
+    "primaryCategory": "finance",
+    "tags": [
+      "copytrading",
+      "defi",
+      "monad",
+      "ai",
+      "trading"
+    ],
+    "heroImageUrl": "https://signalcast.vercel.app/og-image.png",
+    "tagline": "AI-powered copy trading on Monad",
+    "ogTitle": "SignalCast - AI Copy Trading",
+    "ogDescription": "Select AI pets to track and copy successful traders on Farcaster. Built for Monad blockchain.",
+    "ogImageUrl": "https://signalcast.vercel.app/og-image.png",
+    "requiredChains": [
+      "eip155:41144"
+    ],
+    "requiredCapabilities": [
+      "wallet.getEthereumProvider",
+      "actions.signIn"
+    ]
+  }
+} 
