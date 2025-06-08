@@ -1,21 +1,27 @@
 'use client'
 
-import { SignInButton, useProfile } from '@farcaster/auth-kit'
+import { SignInButton } from '@farcaster/auth-kit'
 import '@farcaster/auth-kit/styles.css'
 import { useState, useEffect } from 'react'
 
-export default function FarcasterConnect() {
+// Define a local Profile type to match the structure from the parent
+interface Profile {
+  username: string;
+  displayName: string;
+  pfpUrl: string;
+}
+
+interface FarcasterConnectProps {
+  isLoggedIn: boolean;
+  profile: Profile | null;
+}
+
+export default function FarcasterConnect({ isLoggedIn, profile }: FarcasterConnectProps) {
   // 1. 添加一个状态来跟踪组件是否已在客户端加载，以避免 hydration 问题
   const [hasMounted, setHasMounted] = useState(false)
   useEffect(() => {
     setHasMounted(true)
   }, [])
-
-  // 2. 按照 Linter 提示的正确方式解构
-  const {
-    isAuthenticated,
-    profile
-  } = useProfile()
 
   // 在组件于客户端加载完成前，显示一个加载状态
   if (!hasMounted) {
@@ -23,7 +29,7 @@ export default function FarcasterConnect() {
   }
 
   // 加载完成后，如果用户已认证并且有个人资料，则显示用户信息
-  if (isAuthenticated && profile) {
+  if (isLoggedIn && profile) {
     return (
       <div className="flex items-center space-x-2">
         <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-200">

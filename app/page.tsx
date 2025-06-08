@@ -3,24 +3,52 @@
 import FarcasterConnect from '@/components/FarcasterConnect'
 import { useProfile, useSignIn } from '@farcaster/auth-kit'
 import '@farcaster/auth-kit/styles.css'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { sdk } from '@farcaster/frame-sdk'
 
 export default function Home() {
   const router = useRouter()
-  const { isAuthenticated, loading: profileLoading } = useProfile()
-  const { signIn } = useSignIn()
+  const { isAuthenticated } = useProfile()
+  const { signIn } = useSignIn({})
+  const [isLoading, setIsLoading] = useState(true)
+  const [isMiniApp, setIsMiniApp] = useState(false)
 
   useEffect(() => {
-    // 如果用户已认证，则直接跳转到设置页面
-    if (isAuthenticated) {
-      router.push('/setup')
-    } 
-    // 否则，如果用户未认证且我们没有在等待加载，则触发登录
-    else if (!isAuthenticated && !profileLoading) {
-      signIn()
+    async function checkContext() {
+      const context = await sdk.context
+      if (context && context.user?.fid) {
+        setIsMiniApp(true)
+        setIsLoading(false)
+        router.push('/dashboard')
+        return true // Indicate that we are in a mini app
+      }
+      return false
     }
-  }, [isAuthenticated, profileLoading, signIn, router])
+
+    checkContext().then(isMiniApp => {
+      if (isMiniApp) return
+
+      // --- 原有的 Web 登录逻辑 ---
+      if (isAuthenticated) {
+        setIsLoading(false)
+        router.push('/setup')
+      } else {
+        setIsLoading(false)
+        signIn()
+      }
+    })
+  }, [isAuthenticated, signIn, router])
+
+  if (isMiniApp || isLoading) {
+     return (
+      <main className="flex flex-col items-center justify-center min-h-screen p-6">
+        <div className="text-center text-gray-500">
+          {isLoading ? '正在检查登录状态...' : 'Loading in Farcaster...'}
+        </div>
+      </main>
+    )
+  }
 
   // 这个页面现在是一个纯粹的加载/登录中转页
   return (
@@ -30,7 +58,7 @@ export default function Home() {
           <h1 className="text-2xl font-bold text-gray-800">SignalCast</h1>
           
           <p className="text-center text-gray-500 h-10">
-            {profileLoading
+            {isLoading
               ? '正在检查登录状态...'
               : '请在弹窗中授权以连接您的 Farcaster 账户...'}
           </p>

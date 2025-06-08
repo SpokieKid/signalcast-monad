@@ -4,7 +4,18 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import FarcasterConnect from '../../components/FarcasterConnect'
 import { useProfile } from '@farcaster/auth-kit'
+import { sdk } from '@farcaster/frame-sdk'
 import { SimplifiedTransaction } from '../../lib/types'
+
+// Define a local Profile type to match the structure from useProfile
+interface Profile {
+  fid: number;
+  username: string;
+  displayName: string;
+  pfpUrl: string;
+  bio: string;
+  verifications: `0x${string}`[];
+}
 
 const mockLeaderboard = [
   { rank: 1, user: '@bootoshi', avatar: '/images/avatars/bootoshi.png', profit: '+$6,242' },
@@ -20,9 +31,46 @@ export default function Dashboard() {
   const [timelineTrades, setTimelineTrades] = useState<SimplifiedTransaction[]>([])
   const [isLoadingTimeline, setIsLoadingTimeline] = useState(false)
   const [alertAmount, setAlertAmount] = useState<number>(100)
-  const { profile, isAuthenticated } = useProfile()
+  const [isMiniApp, setIsMiniApp] = useState(false)
+
+  // Use a local state for profile to support both web and mini-app contexts
+  const [currentProfile, setCurrentProfile] = useState<Profile | null>(null)
+  
+  const { profile: webProfile, isAuthenticated } = useProfile()
   const [followingList, setFollowingList] = useState<any[]>([])
   const [isLoadingPeople, setIsLoadingPeople] = useState(false)
+
+  useEffect(() => {
+    async function initialize() {
+      const context = await sdk.context;
+      if (context && context.user?.fid) {
+        setIsMiniApp(true);
+        // In mini-app, use the context user data
+        setCurrentProfile({
+          fid: context.user.fid,
+          username: context.user.username || '',
+          displayName: context.user.displayName || '',
+          pfpUrl: context.user.pfpUrl || '',
+          bio: '', // Bio is not available in mini-app context
+          verifications: [],
+        });
+        sdk.actions.ready(); // Signal that the app is ready
+      } else {
+        // In web, use the profile from auth-kit
+        if (webProfile?.fid) {
+          setCurrentProfile({
+            fid: webProfile.fid,
+            username: webProfile.username || '',
+            displayName: webProfile.displayName || '',
+            pfpUrl: webProfile.pfpUrl || '',
+            bio: webProfile.bio || '',
+            verifications: (webProfile.verifications as `0x${string}`[]) || [],
+          });
+        }
+      }
+    }
+    initialize();
+  }, [webProfile]);
 
   useEffect(() => {
     const savedAmount = localStorage.getItem('alertAmount')
@@ -53,11 +101,11 @@ export default function Dashboard() {
   // }, [profile?.fid])
 
   useEffect(() => {
-    if (activeTab === 'people' && profile?.fid) {
+    if (activeTab === 'people' && currentProfile?.fid) {
       const fetchFollowing = async () => {
         setIsLoadingPeople(true)
         try {
-          const response = await fetch(`/api/following?fid=${profile.fid}`)
+          const response = await fetch(`/api/following?fid=${currentProfile.fid}`)
           if (!response.ok) {
             const errorData = await response.json()
             throw new Error(errorData.error || 'Failed to fetch following list')
@@ -73,10 +121,10 @@ export default function Dashboard() {
 
       fetchFollowing()
     }
-  }, [activeTab, profile?.fid])
+  }, [activeTab, currentProfile?.fid])
 
   useEffect(() => {
-    if (!profile?.fid || !isAuthenticated) {
+    if (!currentProfile?.fid || (!isAuthenticated && !isMiniApp)) {
       return;
     }
 
@@ -84,7 +132,7 @@ export default function Dashboard() {
       setIsLoadingTimeline(true);
       setTimelineTrades([]); // Clear previous trades on new fetch
 
-      const eventSource = new EventSource(`/api/transactions?fid=${profile.fid}`);
+      const eventSource = new EventSource(`/api/transactions?fid=${currentProfile.fid}`);
 
       eventSource.addEventListener('transaction', (event) => {
         try {
@@ -128,7 +176,7 @@ export default function Dashboard() {
     const cleanup = fetchTimelineStream();
     return cleanup; // This will be called when the component unmounts or deps change
 
-  }, [profile?.fid, isAuthenticated]);
+  }, [currentProfile?.fid, isAuthenticated, isMiniApp]);
 
   const handleTradeClick = (tradeId: number) => {
     window.open('https://app.uniswap.org/', '_blank')
@@ -138,7 +186,7 @@ export default function Dashboard() {
     window.open('https://etherscan.io/', '_blank')
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isMiniApp) {
     // ... (login button JSX) ...
   }
 
@@ -149,7 +197,10 @@ export default function Dashboard() {
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold text-gray-800">SignalCast</h1>
-            <FarcasterConnect />
+            <FarcasterConnect 
+              isLoggedIn={isAuthenticated || isMiniApp}
+              profile={currentProfile}
+            />
           </div>
         </div>
       </div>
