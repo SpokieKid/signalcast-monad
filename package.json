@@ -10,6 +10,7 @@
     "validate": "npm run build && npm run test:miniapp",
     "test:miniapp": "curl -f http://localhost:3000/miniapp.json && curl -f http://localhost:3000/manifest.json",
     "validate:manifest": "node scripts/validate-manifest.js",
+    "validate:embed": "node scripts/validate-embed.js",
     "deploy": "vercel --prod"
   },
   "dependencies": {

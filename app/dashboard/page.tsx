@@ -296,13 +296,13 @@ export default function Dashboard() {
                     <div className="flex items-center space-x-2 mb-1 flex-wrap">
                       {trade.action === 'Swap' && trade.sent && trade.received &&
                         <>
-                          <span className="text-gray-700">交换了</span>
+                          <span className="text-gray-700">Swapped</span>
                           <div className="flex items-center space-x-1">
                             <span className="font-bold text-red-600">{trade.sent.amount}</span>
                              <img src={trade.sent.logo || '/images/tokens/default.png'} alt={trade.sent.token} className="w-4 h-4" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                             <span className="font-bold text-red-600">{trade.sent.token}</span>
                           </div>
-                          <span className="text-gray-700">为</span>
+                          <span className="text-gray-700">for</span>
                           <div className="flex items-center space-x-1">
                             <span className="font-bold text-green-600">{trade.received.amount}</span>
                              <img src={trade.received.logo || '/images/tokens/default.png'} alt={trade.received.token} className="w-4 h-4" onError={(e) => { e.currentTarget.style.display = 'none' }} />
@@ -312,13 +312,13 @@ export default function Dashboard() {
                       }
                       {trade.action === 'Transfer' && trade.sent && (
                          <>
-                          <span className="text-gray-700">发送了</span>
+                          <span className="text-gray-700">Sent</span>
                            <div className="flex items-center space-x-1">
                             <span className="font-bold text-red-600">{trade.sent.amount}</span>
                              <img src={trade.sent.logo || '/images/tokens/default.png'} alt={trade.sent.token} className="w-4 h-4" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                             <span className="font-bold text-red-600">{trade.sent.token}</span>
                           </div>
-                          <span className="text-gray-700">出去</span>
+                          <span className="text-gray-700">out</span>
                         </>
                       )}
                     </div>

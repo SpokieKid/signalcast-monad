@@ -31,6 +31,16 @@
     "requiredCapabilities": [
       "wallet.getEthereumProvider",
       "actions.signIn"
-    ]
+    ],
+    "imageUrl": "https://signal-cast.vercel.app/og-image.png",
+    "buttonTitle": "Launch SignalCast",
+    "screenshotUrls": [
+      "https://signal-cast.vercel.app/screenshot1.png",
+      "https://signal-cast.vercel.app/screenshot2.png",
+      "https://signal-cast.vercel.app/screenshot3.png"
+    ],
+    "ogTitle": "SignalCast - AI Pets Trading",
+    "ogDescription": "Track and follow trades from people you follow on Farcaster with AI pets.",
+    "ogImageUrl": "https://signal-cast.vercel.app/og-image.png"
   }
 } 

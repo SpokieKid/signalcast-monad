@@ -54,6 +54,35 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SignalCast" />
         <meta name="mobile-web-app-capable" content="yes" />
+        
+        {/* Farcaster Frame Embed Meta Tags */}
+        <meta name="fc:frame" content={JSON.stringify({
+          version: "next",
+          imageUrl: "https://signal-cast.vercel.app/og-image.png",
+          button: {
+            title: "Launch SignalCast",
+            action: {
+              type: "launch_frame",
+              name: "SignalCast",
+              url: "https://signal-cast.vercel.app",
+              splashImageUrl: "https://signal-cast.vercel.app/splash.png",
+              splashBackgroundColor: "#6366f1"
+            }
+          }
+        })} />
+        
+        {/* Open Graph Meta Tags */}
+        <meta property="og:title" content="SignalCast - AI Pets Trading" />
+        <meta property="og:description" content="Track and follow trades from people you follow on Farcaster with AI pets." />
+        <meta property="og:image" content="https://signal-cast.vercel.app/og-image.png" />
+        <meta property="og:url" content="https://signal-cast.vercel.app" />
+        <meta property="og:type" content="website" />
+        
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="SignalCast - AI Pets Trading" />
+        <meta name="twitter:description" content="Track and follow trades from people you follow on Farcaster with AI pets." />
+        <meta name="twitter:image" content="https://signal-cast.vercel.app/og-image.png" />
       </head>
       <body className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
         <WagmiProvider config={wagmiConfig}>
