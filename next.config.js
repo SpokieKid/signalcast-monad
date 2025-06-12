@@ -7,6 +7,10 @@ const nextConfig = {
         destination: '/miniapp.json',
       },
       {
+        source: '/.well-known/farcaster.json',
+        destination: '/.well-known/farcaster.json',
+      },
+      {
         source: '/.well-known/frame',
         destination: '/api/frame'
       },

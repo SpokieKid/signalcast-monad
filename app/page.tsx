@@ -7,12 +7,26 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { sdk } from '@farcaster/frame-sdk'
 
+// 匹配 FarcasterConnect 组件的 Profile 类型
+interface ConnectProfile {
+  username: string;
+  displayName: string;
+  pfpUrl: string;
+}
+
 export default function Home() {
   const router = useRouter()
-  const { isAuthenticated } = useProfile()
+  const { isAuthenticated, profile } = useProfile()
   const { signIn } = useSignIn({})
   const [isLoading, setIsLoading] = useState(true)
   const [isMiniApp, setIsMiniApp] = useState(false)
+
+  // 将 auth-kit 的 profile 转换为 FarcasterConnect 需要的 profile
+  const connectProfile: ConnectProfile | null = profile ? {
+    username: profile.username || '',
+    displayName: profile.displayName || '',
+    pfpUrl: profile.pfpUrl || '',
+  } : null
 
   useEffect(() => {
     async function checkContext() {
@@ -32,12 +46,7 @@ export default function Home() {
       // --- 原有的 Web 登录逻辑 ---
       if (isAuthenticated) {
         setIsLoading(false)
-        const hasCompletedSetup = localStorage.getItem('hasCompletedSetup')
-        if (hasCompletedSetup) {
-          router.push('/dashboard')
-        } else {
-          router.push('/setup')
-        }
+        router.push('/setup')
       } else {
         setIsLoading(false)
         signIn()
@@ -74,7 +83,7 @@ export default function Home() {
           登录成功后，上面的 useEffect 会处理跳转。
         */}
         <div className="flex justify-center">
-          <FarcasterConnect />
+          <FarcasterConnect isLoggedIn={isAuthenticated} profile={connectProfile} />
         </div>
       </div>
 

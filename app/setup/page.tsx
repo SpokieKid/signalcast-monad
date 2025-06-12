@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 const petData = {
   doge: { name: 'Doge', image: '/images/pets/doge.png', color: 'from-yellow-400 to-orange-500' },
   cat: { name: 'Cat', image: '/images/pets/cat.png', color: 'from-pink-400 to-purple-500' },
-  forg: { name: 'Forg', image: '/images/pets/forg.png', color: 'from-green-400 to-teal-500' }
+  frog: { name: 'frog', image: '/images/pets/frog.png', color: 'from-green-400 to-teal-500' }
 }
 
 const petKeys = Object.keys(petData)

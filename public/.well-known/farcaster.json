@@ -1,0 +1,36 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjMxNzg5NSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDJmNzNkNzk2OGU3QjQ3MGI1OTY0YTQzMDYzOUY1OWZjNzBENTI3NDAifQ",
+    "payload": "eyJkb21haW4iOiJzaWduYWwtY2FzdC52ZXJjZWwuYXBwIn0",
+    "signature": "MHg0OGZkZmIwNTRiOTQ2ZjliNTEyYzI4NDhjNzIyNzE4OWQ1NGVjMzBiMTJhYzQxYmYyZWMxODk3YjcyZTg1N2UyNTk2Zjc0NjlmMjdiOTZjNzE0ZTJkZTFlMzdjN2E5YThkZmI5YzhmMjQzMzhlNDI5MzkzYjkxOTdmNTA2M2NiMjFi"
+  },
+  "frame": {
+    "version": "1",
+    "name": "SignalCast",
+    "iconUrl": "https://signal-cast.vercel.app/icon.png",
+    "homeUrl": "https://signal-cast.vercel.app",
+    "splashImageUrl": "https://signal-cast.vercel.app/splash.png",
+    "splashBackgroundColor": "#6366f1",
+    "subtitle": "AI pets copy trading on Monad",
+    "description": "Get signals fast with AI pets, see what your frens are trading and copy them.",
+    "primaryCategory": "finance",
+    "tags": [
+      "copytrading",
+      "defi",
+      "monad",
+      "ai",
+      "trading"
+    ],
+    "heroImageUrl": "https://signal-cast.vercel.app/og-image.png",
+    "tagline": "Get Signals Fast",
+    "requiredChains": [
+        "eip155:1",
+        "eip155:8453",
+        "eip155:42161"
+      ],
+    "requiredCapabilities": [
+      "wallet.getEthereumProvider",
+      "actions.signIn"
+    ]
+  }
+} 
