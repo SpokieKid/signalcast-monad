@@ -39,6 +39,12 @@ export default function Dashboard() {
   const { profile: webProfile, isAuthenticated } = useProfile()
   const [followingList, setFollowingList] = useState<any[]>([])
   const [isLoadingPeople, setIsLoadingPeople] = useState(false)
+  
+  // 新增leaderboard相关状态
+  const [leaderboard, setLeaderboard] = useState<any[]>([])
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false)
+  const [isCalculatingLeaderboard, setIsCalculatingLeaderboard] = useState(false)
+  const [lastCalculated, setLastCalculated] = useState<string | null>(null)
 
   useEffect(() => {
     async function initialize() {
@@ -177,6 +183,60 @@ export default function Dashboard() {
     return cleanup; // This will be called when the component unmounts or deps change
 
   }, [currentProfile?.fid, isAuthenticated, isMiniApp]);
+
+  // 新增：获取leaderboard数据的useEffect
+  useEffect(() => {
+    if (activeTab === 'leaderboard' && currentProfile?.fid) {
+      const fetchLeaderboard = async () => {
+        setIsLoadingLeaderboard(true)
+        try {
+          const response = await fetch(`/api/leaderboard?fid=${currentProfile.fid}`)
+          if (response.ok) {
+            const data = await response.json()
+            setLeaderboard(data.data || [])
+            setLastCalculated(data.lastCalculated)
+          } else {
+            console.error('Failed to fetch leaderboard')
+            setLeaderboard([])
+          }
+        } catch (error) {
+          console.error('Error fetching leaderboard:', error)
+          setLeaderboard([])
+        } finally {
+          setIsLoadingLeaderboard(false)
+        }
+      }
+
+      fetchLeaderboard()
+    }
+  }, [activeTab, currentProfile?.fid])
+
+  // 新增：计算leaderboard的函数
+  const calculateLeaderboard = async () => {
+    if (!currentProfile?.fid) return
+    
+    setIsCalculatingLeaderboard(true)
+    try {
+      const response = await fetch(`/api/leaderboard?fid=${currentProfile.fid}&action=calculate`, {
+        method: 'GET'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setLeaderboard(data.data || [])
+        setLastCalculated(new Date().toISOString())
+        alert(`Leaderboard计算完成！找到${data.count}个有效交易用户`)
+      } else {
+        const errorData = await response.json()
+        alert(`计算失败：${errorData.error || '未知错误'}`)
+      }
+    } catch (error) {
+      console.error('Error calculating leaderboard:', error)
+      alert('计算过程中出错，请重试')
+    } finally {
+      setIsCalculatingLeaderboard(false)
+    }
+  }
 
   const handleTradeClick = (trade: SimplifiedTransaction) => {
     if (trade.action === 'Swap' && trade.sent && trade.received) {
@@ -354,45 +414,82 @@ export default function Dashboard() {
             {/* 说明文字 */}
             <div className="mb-6 text-center">
               <h2 className="text-lg font-bold text-gray-800 mb-2">🏆 Leaderboard</h2>
-              <p className="text-sm text-gray-600">关注者过去7天的收益排名</p>
+              <p className="text-sm text-gray-600">关注者的交易量排名</p>
+              {lastCalculated && (
+                <p className="text-xs text-gray-500 mt-1">
+                  最后计算时间：{new Date(lastCalculated).toLocaleString('zh-CN')}
+                </p>
+              )}
+            </div>
+
+            {/* 计算按钮 */}
+            <div className="mb-6 text-center">
+              <button 
+                onClick={calculateLeaderboard}
+                disabled={isCalculatingLeaderboard}
+                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                  isCalculatingLeaderboard 
+                    ? 'bg-gray-400 text-white cursor-not-allowed' 
+                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                }`}
+              >
+                {isCalculatingLeaderboard ? '计算中...' : '重新计算Leaderboard'}
+              </button>
             </div>
 
             {/* 排行榜 */}
-            <div className="space-y-3">
-              {mockLeaderboard.map((item) => (
-                <div
-                  key={item.rank}
-                  className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm">
-                      {item.rank}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full overflow-hidden">
-                        <img 
-                          src={item.avatar} 
-                          alt={item.user}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNEMUQ1REIiLz4KPHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSI2IiB5PSI2Ij4KPHBhdGggZD0iTTEwIDlDMTEuNjU2OSA5IDEzIDcuNjU2ODUgMTMgNkMxMyA0LjM0MzE1IDExLjY1NjkgMyAxMCAzQzguMzQzMTUgMyA3IDQuMzQzMTUgNyA2QzcgNy42NTY4NSA4LjM0MzE1IDkgMTAgOVpNMTAgMTFDNy4yMzg1OCAxMSA1IDEzLjIzODYgNSAxNlYxN0g2VjE2QzYgMTMuNzkwOSA3Ljc5MDg2IDEyIDEwIDEyQzEyLjIwOTEgMTIgMTQgMTMuNzkwOSAxNCAxNlYxN0gxNVYxNkMxNSAxMy4yMzg2IDEyLjc2MTQgMTEgMTAgMTFaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo8L3N2Zz4K'
-                          }}
-                        />
+            {isLoadingLeaderboard ? (
+              <p className="text-center text-gray-500 py-8">加载中...</p>
+            ) : leaderboard && leaderboard.length > 0 ? (
+              <div className="space-y-3">
+                {leaderboard.map((item: any) => (
+                  <div
+                    key={item.user_fid}
+                    className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 flex items-center justify-between"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm">
+                        {item.rank}
                       </div>
-                      <span className="font-medium text-gray-800">{item.user}</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full overflow-hidden">
+                          <img 
+                            src={item.pfp_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNEMUQ1REIiLz4KPHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSI2IiB5PSI2Ij4KPHBhdGggZD0iTTEwIDlDMTEuNjU2OSA5IDEzIDcuNjU2ODUgMTMgNkMxMyA0LjM0MzE1IDExLjY1NjkgMyAxMCAzQzguMzQzMTUgMyA3IDQuMzQzMTUgNyA2QzcgNy42NTY4NSA4LjM0MzE1IDkgMTAgOVpNMTAgMTFDNy4yMzg1OCAxMSA1IDEzLjIzODYgNSAxNlYxN0g2VjE2QzYgMTMuNzkwOSA3Ljc5MDg2IDEyIDEwIDEyQzEyLjIwOTEgMTIgMTQgMTMuNzkwOSAxNCAxNlYxN0gxNVYxNkMxNSAxMy4yMzg2IDEyLjc2MTQgMTEgMTAgMTFaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo8L3N2Zz4K'} 
+                            alt={item.username}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNEMUQ1REIiLz4KPHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSI2IiB5PSI2Ij4KPHBhdGggZD0iTTEwIDlDMTEuNjU2OSA5IDEzIDcuNjU2ODUgMTMgNkMxMyA0LjM0MzE1IDExLjY1NjkgMyAxMCAzQzguMzQzMTUgMyA3IDQuMzQzMTUgNyA2QzcgNy42NTY4NSA4LjM0MzE1IDkgMTAgOVpNMTAgMTFDNy4yMzg1OCAxMSA1IDEzLjIzODYgNSAxNlYxN0g2VjE2QzYgMTMuNzkwOSA3Ljc5MDg2IDEyIDEwIDEyQzEyLjIwOTEgMTIgMTQgMTMuNzkwOSAxNCAxNlYxN0gxNVYxNkMxNSAxMy4yMzg2IDEyLjc2MTQgMTEgMTAgMTFaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo8L3N2Zz4K'
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-800">@{item.username}</span>
+                          <div className="text-xs text-gray-500">
+                            {item.transaction_count} 笔交易
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-green-600">
+                        ${item.total_usd_volume.toLocaleString('en-US', { 
+                          minimumFractionDigits: 0, 
+                          maximumFractionDigits: 0 
+                        })}
+                      </span>
+                      <div className="text-xs text-gray-500">
+                        交易量
+                      </div>
                     </div>
                   </div>
-                  <span className="font-bold text-green-600">{item.profit}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* 总结按钮 */}
-            <div className="mt-6 text-center">
-              <button className="bg-purple-600 text-white px-6 py-2 rounded-full font-medium">
-                Summarize
-              </button>
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">暂无排行榜数据</p>
+                <p className="text-sm text-gray-400">点击上方按钮开始计算</p>
+              </div>
+            )}
           </div>
         )}
 
